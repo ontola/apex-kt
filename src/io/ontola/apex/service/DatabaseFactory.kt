@@ -79,9 +79,10 @@ object DatabaseFactory {
         val props = Properties()
 
         props.setProperty("dataSourceClassName", "org.postgresql.ds.PGSimpleDataSource")
-        props.setProperty("dataSource.user", "ori_postgres_user")
-        props.setProperty("dataSource.password", "")
-        props.setProperty("dataSource.databaseName", "ori")
+        props.setProperty("dataSource.user", System.getenv("POSTGRES_USERNAME") ?: "ori_postgres_user")
+        props.setProperty("dataSource.password", System.getenv("POSTGRES_PASSWORD") ?: "")
+        props.setProperty("dataSource.databaseName", System.getenv("ORI_API_POSTGRESQL_DATABASE") ?: "ori")
+        props.setProperty("dataSource.serverName", System.getenv("ORI_API_POSTGRESQL_ADDRESS") ?: "localhost")
         val config = HikariConfig(props)
 
         return HikariDataSource(config)

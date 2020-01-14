@@ -9,6 +9,7 @@ import io.ktor.features.ConditionalHeaders
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.origin
 import io.ktor.http.CacheControl
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
 import io.ktor.jackson.jackson
 import io.ktor.request.port
@@ -39,7 +40,8 @@ fun Application.module(testing: Boolean = false) {
     install(CachingHeaders) {
         options { outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
-                ContentType.Application.NQuads -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60))
+                ContentType.Application.NQuads.withoutParameters() ->
+                    CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 24 * 60 * 60))
                 else -> null
             }
         }
@@ -61,21 +63,27 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/") {
             val origin = call.request.origin
-            call.attributes.put(RequestVariables.origin, "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}")
+            call.attributes.put(
+                RequestVariables.origin,
+                "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}"
+            )
             val page = call.request.queryParameters["page"]?.toInt()
             val resources = resourceService.getAllResources(call.attributes, page)
 
             call.respond(resources)
         }
 
-        get("/kb/{id}") {
+        get("/{id}") {
             val id = call.parameters["id"]
 
             val origin = call.request.origin
-            call.attributes.put(RequestVariables.origin, "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}")
+            call.attributes.put(
+                RequestVariables.origin,
+                "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}"
+            )
             val resource = resourceService.getResource(id!!.toInt(10), call.attributes)
             if (resource == null) {
-                call.respond(404)
+                call.respond(HttpStatusCode.NotFound, "404 not found")
             } else {
                 call.respond(resource)
             }

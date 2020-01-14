@@ -34,10 +34,9 @@ class NQuadsConverter : ContentConverter {
     ): OutgoingContent = object : OutgoingContent.WriteChannelContent() {
         override val contentType = ContentType.Application.NQuads
         override suspend fun writeTo(channel: ByteWriteChannel) {
-            if (value is Collection<*>) {
-                value.filterNotNull().map { v -> serialize(v, channel) }
-            } else {
-                serialize(value, channel)
+            when(value) {
+                is Collection<*> -> value.filterNotNull().map { v -> serialize(v, channel) }
+                else -> serialize(value, channel)
             }
         }
     }
@@ -48,7 +47,7 @@ private suspend fun serialize(value: Any, output: ByteWriteChannel) {
     val type = value::class
     val iriProvider = type.findAnnotation<IRIProvider>()
     if (iriProvider === null) {
-        throw Error("Resource not rdf serializable") // TODO: type error
+        throw Error("Resource not rdf serializable ($type)") // TODO: type error
     }
 
     val property = type.members.find { m -> m.name == iriProvider.property }
