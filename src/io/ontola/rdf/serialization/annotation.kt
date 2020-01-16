@@ -9,6 +9,9 @@ public annotation class IRIProvider(val property: String)
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
 public annotation class PropertyProvider()
 
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+public annotation class ResourceProvider()
+
 ///**
 // * Instructs to use specific serializer for class, property or type argument.
 // *

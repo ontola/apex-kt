@@ -2,16 +2,15 @@ package io.ontola.apex.service
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ontola.apex.model.Documents
 import io.ontola.apex.model.Properties
 import io.ontola.apex.model.Resources
 import io.ontola.rdf.dsl.iri
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 
 object DatabaseFactory {
@@ -30,46 +29,75 @@ object DatabaseFactory {
 
         if (testing) {
             transaction {
-                SchemaUtils.create(Resources, Properties)
-                val bob = Resources.insert {
-                    it[id] = 5 // UUID.fromString("6bd19870-141b-42ea-8540-d9023715ef9f")
+                SchemaUtils.create(Documents, Resources, Properties)
+
+                val bobDoc = Documents.insert {
+//                    it[id] = 5 // UUID.fromString("6bd19870-141b-42ea-8540-d9023715ef9f")
                     it[iri] = "http://localhost:8000/people/bob".iri().stringValue()
-//                    val now = DateTime.now().unixMillisDouble
-//                    it[createdAt] = now
-//                    it[updatedAt] = now
+                } get Documents.id
+
+                val bob = Resources.insert {
+                    it[document] = bobDoc
+                    it[iri] = "http://localhost:8000/people/bob".iri().stringValue()
                 } get Resources.id
 
                 Properties.insert {
                     it[resource] = bob
                     it[predicate] = "https://schema.org/name"
-                    it[string] = "Bob"
-//                    val now = DateTime.now().unixMillisDouble
-//                    it[createdAt] = now
-//                    it[updatedAt] = now
+                    it[string] = "Bob's document"
                 }
                 Properties.insert {
                     it[resource] = bob
                     it[predicate] = "https://schema.org/description"
-                    it[string] = "A typical computer person"
-//                    val now = DateTime.now().unixMillisDouble
-//                    it[createdAt] = now
-//                    it[updatedAt] = now
+                    it[string] = "An electronic document about bob"
                 }
 
+                val bobCard = Resources.insert {
+                    it[document] = bobDoc
+                    it[iri] = "http://localhost:8000/people/bob#me".iri().stringValue()
+                } get Resources.id
+
+                Properties.insert {
+                    it[resource] = bobCard
+                    it[predicate] = "https://schema.org/name"
+                    it[string] = "Bob"
+                }
+                Properties.insert {
+                    it[resource] = bobCard
+                    it[predicate] = "https://schema.org/description"
+                    it[string] = "A typical computer person"
+                }
+
+                val bobMeta = Resources.insert {
+                    it[document] = bobDoc
+                    it[iri] = "http://localhost:8000/people/bob#meta".iri().stringValue()
+                } get Resources.id
+
+                Properties.insert {
+                    it[resource] = bobMeta
+                    it[predicate] = "https://schema.org/name"
+                    it[string] = "About Bob"
+                }
+                Properties.insert {
+                    it[resource] = bobMeta
+                    it[predicate] = "https://schema.org/description"
+                    it[string] = "Whatever metadata we have"
+                }
+
+                val aliceDoc = Documents.insert {
+                    it[id] = 5 // UUID.fromString("6bd19870-141b-42ea-8540-d9023715ef9f")
+                    it[iri] = "http://localhost:8000/people/bob".iri().stringValue()
+                } get Documents.id
+
                 val alice = Resources.insert {
+                    it[document] = aliceDoc
                     it[iri] = "http://localhost:8000/people/alice".iri().stringValue()
-//                    val now = DateTime.now().unixMillisDouble
-//                    it[createdAt] = now
-//                    it[updatedAt] = now
                 } get Resources.id
 
                 Properties.insert {
                     it[resource] = bob
                     it[predicate] = "https://schema.org/friend"
-//                    it[node] = alice
-//                    val now = DateTime.now().unixMillisDouble
-//                    it[createdAt] = now
-//                    it[updatedAt] = now
+//                    it[node] = bob
                 }
             }
         }

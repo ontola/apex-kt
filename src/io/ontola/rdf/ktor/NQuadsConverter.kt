@@ -12,6 +12,7 @@ import io.ontola.apex.model.Resource
 import io.ontola.apex.model.ResourceReference
 import io.ontola.rdf.serialization.IRIProvider
 import io.ontola.rdf.serialization.PropertyProvider
+import io.ontola.rdf.serialization.ResourceProvider
 import kotlinx.coroutines.io.ByteWriteChannel
 import kotlinx.coroutines.io.writeStringUtf8
 import kotlinx.serialization.SerialName
@@ -44,6 +45,23 @@ class NQuadsConverter : ContentConverter {
 
 @ExperimentalStdlibApi
 private suspend fun serialize(value: Any, output: ByteWriteChannel) {
+    val type = value::class
+    val resources = type.members.find { m -> m.hasAnnotation<ResourceProvider>() }
+
+    if (resources === null) {
+        return serializeResource(value, output)
+    }
+
+    resources.let {
+        println((it.call(value) as Collection<Resource>))
+        (it.call(value) as Collection<Resource>).forEach { resource ->
+            serializeResource(resource, output)
+        }
+    }
+}
+
+@ExperimentalStdlibApi
+private suspend fun serializeResource(value: Any, output: ByteWriteChannel) {
     val type = value::class
     val iriProvider = type.findAnnotation<IRIProvider>()
     if (iriProvider === null) {

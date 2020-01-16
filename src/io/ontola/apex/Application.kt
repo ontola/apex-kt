@@ -17,7 +17,7 @@ import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ontola.apex.service.DatabaseFactory
-import io.ontola.apex.service.ResourceService
+import io.ontola.apex.service.DocumentService
 import io.ontola.rdf.ktor.ContentType
 import io.ontola.rdf.ktor.nquads
 
@@ -58,17 +58,18 @@ fun Application.module(testing: Boolean = false) {
 
     DatabaseFactory.init(testing)
 
-    val resourceService = ResourceService()
+    val documentService = DocumentService()
 
     routing {
         get("/") {
             val origin = call.request.origin
             call.attributes.put(
                 RequestVariables.origin,
-                "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}"
+                "${origin.scheme}://${origin.host}${call.request.port().let { ":$it" }}"
             )
             val page = call.request.queryParameters["page"]?.toInt()
-            val resources = resourceService.getAllResources(call.attributes, page)
+            val resources = documentService.getAllDocuments(call.attributes, page)
+            println("Resources: ${resources.size}")
 
             call.respond(resources)
         }
@@ -79,9 +80,9 @@ fun Application.module(testing: Boolean = false) {
             val origin = call.request.origin
             call.attributes.put(
                 RequestVariables.origin,
-                "${origin.scheme}://${origin.host}${call.request.port()?.let { ":$it" }}"
+                "${origin.scheme}://${origin.host}${call.request.port().let { ":$it" }}"
             )
-            val resource = resourceService.getResource(id!!.toInt(10), call.attributes)
+            val resource = documentService.getDocument(id!!.toInt(10), call.attributes)
             if (resource == null) {
                 call.respond(HttpStatusCode.NotFound, "404 not found")
             } else {

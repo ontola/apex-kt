@@ -8,8 +8,9 @@ import org.eclipse.rdf4j.model.IRI
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
-object Resources : Table("resource") {
-    val id: Column<Int> = integer("ori_id").autoIncrement().primaryKey()
+object Resources : Table("resources") {
+    val id: Column<Int> = integer("id").autoIncrement()
+    val document: Column<Int> = integer("document_id").references(Documents.id)
     val iri = varchar("iri", 2000)
 //    val createdAt = double("created_at")
 //    val updatedAt = double("updated_at")
@@ -27,7 +28,7 @@ class Resource(
 //    @SerialName("https://argu.co/ns/core#confirmed")
 //    var confirmed: Boolean,
     @PropertyProvider()
-    val properties: Collection<Property>
+    val properties: MutableCollection<Property>
 ) {
     var host: String = "http://localhost:8000"
     @SerialName("http://www.w3.org/2002/07/owl#sameAs")
