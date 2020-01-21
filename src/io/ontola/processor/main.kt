@@ -21,6 +21,8 @@ package io.ontola.processor
 import io.ontola.deltabus.*
 import io.ontola.deltabus.kafka.produce
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import java.io.File
 import java.util.*
 
@@ -29,6 +31,7 @@ import java.util.*
  *
  * TODO: Add error handling service
  */
+@InternalCoroutinesApi
 @FlowPreview
 @ExperimentalCoroutinesApi
 fun main(args: Array<String>) = runBlocking {
@@ -50,7 +53,8 @@ fun main(args: Array<String>) = runBlocking {
         else -> {
             val cmd = arrayListOf("processDeltas", primaryFlag).joinToString(" ")
             val deltas = launch(coroutineContext) {
-                processDeltas(produce(primaryFlag == "--from-beginning"))
+                val channel = processDeltas(produce(primaryFlag == "--from-beginning"))
+                deltasToDocuments(channel).collect()
             }
 
             joinAll(deltas)

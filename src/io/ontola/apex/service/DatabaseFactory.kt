@@ -18,7 +18,7 @@ object DatabaseFactory {
         if (testing){
             Database.connect(testingConfig())
         } else {
-            Database.connect(pgConfig())
+            Database.connect(testingConfig())
 //            Database.connect(
 //                "jdbc:postgresql://localhost:5432/ori",
 //                driver = "org.postgresql.Driver",
@@ -27,7 +27,7 @@ object DatabaseFactory {
 //            )
         }
 
-        if (testing) {
+//        if (testing) {
             transaction {
                 SchemaUtils.create(Documents, Resources, Properties)
 
@@ -99,7 +99,7 @@ object DatabaseFactory {
                     it[predicate] = "https://schema.org/friend"
 //                    it[node] = bob
                 }
-            }
+//            }
         }
     }
 

@@ -19,13 +19,15 @@ package io.ontola.deltabus
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.eclipse.rdf4j.model.IRI
+import org.eclipse.rdf4j.model.Model
 import kotlin.system.exitProcess
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-suspend fun processDeltas(producer: Flow<DeltaMessage>) = withContext(Dispatchers.Default) {
+suspend fun processDeltas(producer: Flow<DeltaMessage>): Flow<Pair<IRI, Model>> = withContext(Dispatchers.Default) {
     try {
-        pipeline(producer).collect()
+        pipeline(producer)
     } catch (e: Exception) {
         println("Fatal error occurred: ${e.message}")
         e.printStackTrace()
@@ -35,13 +37,11 @@ suspend fun processDeltas(producer: Flow<DeltaMessage>) = withContext(Dispatcher
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-fun pipeline(flow: Flow<DeltaMessage>): Flow<*> {
+fun pipeline(flow: Flow<DeltaMessage>): Flow<Pair<IRI, Model>> {
     return flow
         .filter { isDelta(it) }
         .map { parseMessage(it) }
         .map { splitDelta(it) }
         .flattenConcat()
-        .map { /* TODO: upsert */ println(it) }
-        /* TODO: Process each document */
         .catch { e -> println("Caught $e") }
 }

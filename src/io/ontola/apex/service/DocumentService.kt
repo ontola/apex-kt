@@ -24,14 +24,14 @@ class DocumentService {
         }
     }
 
-    suspend fun addResource(resource: NewResource, ctx: Attributes): Document {
+    suspend fun addResource(resource: Document): Document {
         var key: Int? = null
         dbQuery {
-            key = Resources.insert {
-                it[iri] = resource.iri.stringValue()
-            } get Resources.id
+            key = Documents.insert {
+                it[iri] = resource.iri
+            } get Documents.id
         }
-        return getDocument(key!!, ctx)!!.also {
+        return getDocument(key!!)!!.also {
             onChange(ChangeType.CREATE, key!!, it)
         }
     }
@@ -48,7 +48,7 @@ class DocumentService {
             .let { parseResultSet(it).values.toList() }
     }
 
-    suspend fun getDocument(id: Int, ctx: Attributes): Document? = dbQuery {
+    suspend fun getDocument(id: Int): Document? = dbQuery {
         val linkedResources = Resources.alias("lr")
 
         joinedPropertyTable(
@@ -62,17 +62,17 @@ class DocumentService {
             .let { parseResultSet(it)[id] }
     }
 
-    suspend fun updateDocument(resource: NewResource, ctx: Attributes): Document? {
+    suspend fun updateDocument(resource: Document): Document? {
         val id = resource.id
         return if (id === null) {
-            addResource(resource, ctx)
+            addResource(resource)
         } else {
             dbQuery {
-                Resources.update({ Resources.id eq id }) {
-                    it[iri] = resource.iri.stringValue()
+                Documents.update({ Documents.id eq id }) {
+                    it[iri] = resource.iri
                 }
             }
-            getDocument(id, ctx).also {
+            getDocument(id).also {
                 onChange(ChangeType.UPDATE, id, it)
             }
         }

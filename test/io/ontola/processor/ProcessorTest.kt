@@ -15,25 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.ontola.deltabus
+package io.ontola.processor
 
-import io.kotlintest.matchers.string.shouldBeEqualIgnoringCase
+import io.kotlintest.matchers.types.shouldBeInstanceOf
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.ontola.testhelpers.asResource
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.runBlocking
-import org.apache.kafka.clients.consumer.ConsumerRecord
+import io.ontola.apex.model.Resource
+import io.ontola.deltabus.ORio
+import io.ontola.rdf.dsl.iri
 
-@FlowPreview
-@ExperimentalCoroutinesApi
-class DeltaChannelTest : StringSpec({
-    "pipeline should run" {
-        val model = """
+class ProcessorTest : StringSpec({
+    "modelToDocument should convert" {
+        val nquads = """
             <https://id.openraadsinformatie.nl/10> <http://schema.org/name> "Test" <http://purl.org/link-lib/supplant?graph=https%3A%2F%2Fid.openraadsinformatie.nl%2F10> .
             <https://id.openraadsinformatie.nl/10> <http://schema.org/creator> _:123 <http://purl.org/link-lib/supplant?graph=https%3A%2F%2Fid.openraadsinformatie.nl%2F10> .
             <https://id.openraadsinformatie.nl/10> <http://schema.org/tags> <https://id.openraadsinformatie.nl/10#listRoot> <http://purl.org/link-lib/supplant?graph=https%3A%2F%2Fid.openraadsinformatie.nl%2F10> .
@@ -55,13 +48,19 @@ class DeltaChannelTest : StringSpec({
             <https://id.openraadsinformatie.nl/10> <http://schema.org/error> "Same subject with different delta graph" <http://purl.org/link-lib/supplant?graph=https%3A%2F%2Fid.openraadsinformatie.nl%2Fother> .
             <https://id.openraadsinformatie.nl/11> <http://schema.org/name> "Different subject no graph" <http://purl.org/link-lib/supplant> .
         """.trimIndent()
-        val data = listOf(DeltaMessage(deltaTopic, "", model)).asFlow()
 
-        runBlocking {
-            val test = pipeline(data).collect()
+        val iri = "https://id.openraadsinformatie.nl/10".iri()
+        val model = ORio.parseToModel(nquads)
+        val document = modelToDocument(Pair(iri, model))
 
-            // TODO
-            "test" shouldBeEqualIgnoringCase test.toString()
-        }
+        // TODO
+        document.iri shouldBe iri
+
+        val docResource = document.resources.find { r -> r.iri === iri.stringValue() }
+
+        docResource.shouldBeInstanceOf<Resource>()
+        // test properties
+
+        // test _:123, #listRoot, etc
     }
 })
