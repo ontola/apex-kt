@@ -69,7 +69,6 @@ fun Application.module(testing: Boolean = false) {
             )
             val page = call.request.queryParameters["page"]?.toInt()
             val resources = documentService.getAllDocuments(call.attributes, page)
-            println("Resources: ${resources.size}")
 
             call.respond(resources)
         }

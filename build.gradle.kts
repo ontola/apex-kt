@@ -53,6 +53,13 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.2.1")
     // Fixes undefined HexBinaryAdapter in org.eclipse.rdf4j.rio.helpers::AbstractRDFParser
     implementation("javax.xml.bind:jaxb-api:2.3.0")
+
+    implementation("org.apache.kafka:kafka-clients:2.2.0")
+    testImplementation("org.apache.kafka:kafka-clients:2.2.0.kafka:test")
+    testImplementation("org.apache.kafka:kafka_2.11:2.2.0")
+    testImplementation("org.apache.kafka:kafka_2.11:2.2.0.kafka:test")
+
+    testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src")

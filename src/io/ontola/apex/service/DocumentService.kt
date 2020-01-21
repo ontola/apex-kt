@@ -24,6 +24,18 @@ class DocumentService {
         }
     }
 
+    suspend fun addResource(resource: NewResource, ctx: Attributes): Document {
+        var key: Int? = null
+        dbQuery {
+            key = Resources.insert {
+                it[iri] = resource.iri.stringValue()
+            } get Resources.id
+        }
+        return getDocument(key!!, ctx)!!.also {
+            onChange(ChangeType.CREATE, key!!, it)
+        }
+    }
+
     suspend fun getAllDocuments(ctx: Attributes, page: Int?): List<Document> = dbQuery {
         val linkedResources = Resources.alias("lr")
 
@@ -33,7 +45,7 @@ class DocumentService {
                 .and((Properties.node eq linkedResources[Resources.id]).or(Properties.node.isNull()))
         )
             .limit(1000, offset = (((page ?: 1) - 1) * 1000).coerceIn(1, Int.MAX_VALUE))
-            .let { ResultSetParser(it).parse().values.toList() }
+            .let { parseResultSet(it).values.toList() }
     }
 
     suspend fun getDocument(id: Int, ctx: Attributes): Document? = dbQuery {
@@ -47,7 +59,7 @@ class DocumentService {
                 .and((Properties.node eq linkedResources[Resources.id]).or(Properties.node.isNull()))
         )
             .limit(1000)
-            .let { ResultSetParser(it).parse()[id] }
+            .let { parseResultSet(it)[id] }
     }
 
     suspend fun updateDocument(resource: NewResource, ctx: Attributes): Document? {
@@ -63,18 +75,6 @@ class DocumentService {
             getDocument(id, ctx).also {
                 onChange(ChangeType.UPDATE, id, it)
             }
-        }
-    }
-
-    suspend fun addResource(resource: NewResource, ctx: Attributes): Document {
-        var key: Int? = null
-        dbQuery {
-            key = Resources.insert {
-                it[iri] = resource.iri.stringValue()
-            } get Resources.id
-        }
-        return getDocument(key!!, ctx)!!.also {
-            onChange(ChangeType.CREATE, key!!, it)
         }
     }
 

@@ -43,7 +43,7 @@ data class ResourceReference(
 )
 
 data class NewResource(
-    val id: Int,
+    val id: Int?,
     val iri: IRI
 //    val confirmed: Boolean = false
 )
