@@ -36,7 +36,7 @@ fun splitDelta(event: Model) = flow {
 }
 
 /** Partitions a delta into separately processable slices. */
-private fun partition(data: Model): Map<IRI, Model> {
+fun partition(data: Model): Map<IRI, Model> {
     val subjectBuckets = splitByDocument(data)
     return partitionPerDocument(subjectBuckets)
 }

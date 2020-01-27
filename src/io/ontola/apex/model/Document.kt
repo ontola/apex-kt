@@ -12,7 +12,7 @@ object Documents : Table("documents") {
 
 @IRIProvider("iri")
 class Document(
-    val id: Int,
+    val id: Int?,
     var iri: String,
     @ResourceProvider()
     val resources: MutableCollection<Resource>

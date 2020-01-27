@@ -1,6 +1,7 @@
 package io.ontola.processor
 
 import io.ontola.apex.model.Document
+import io.ontola.apex.model.Resource
 import io.ontola.apex.service.DocumentService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,11 +19,17 @@ fun deltasToDocuments(flow: Flow<Pair<IRI, Model>>): Flow<*> {
 
 internal fun modelToDocument(delta: Pair<IRI, Model>): Document {
     val (docIRI, model) = delta
+    val resources = mutableListOf<Resource>()
+
     /* TODO: convert Model to Document->resource->property */
     /*
      * 1. Create Document with {docIRI}
      * 2. Group the statements in {model} on their subject
      * 3. For each group; add every statement as property
      */
-    return Document(0, "", mutableListOf())
+    for (statement in model) {
+        println(statement)
+    }
+    println()
+    return Document(null, docIRI.stringValue(), resources)
 }
