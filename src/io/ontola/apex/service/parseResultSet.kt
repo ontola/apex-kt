@@ -3,6 +3,7 @@ package io.ontola.apex.service;
 import com.soywiz.klock.DateTime
 import io.ontola.apex.model.*
 import io.ontola.rdf.dsl.iri
+import io.ontola.rdf.createIRI
 import org.jetbrains.exposed.sql.Query;
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.alias
@@ -28,7 +29,7 @@ private fun ensureDocument(documents: MutableMap<Int, Document>, row: ResultRow)
     return documents.getOrPut(documentId) {
         Document(
             id = documentId,
-            iri = row[Documents.iri],
+            iri = createIRI(row[Documents.iri]),
             resources = mutableListOf()
         )
     }
@@ -43,7 +44,7 @@ private fun ensureResource(row: ResultRow, document: Document): Resource {
 
     return Resource(
         id = resourceId,
-        iri = row[Resources.iri],
+        iri = createIRI(row[Resources.iri]),
         properties = mutableListOf()
     ).also { document.resources += it }
 }
@@ -75,14 +76,14 @@ private fun ensureProperty(row: ResultRow, resource: Resource): Property {
             DateTime.fromUnix(unixMillis)
         },
         integer = row[Properties.integer],
-//                    bigInt = resultRow[Properties.bigInt]?.let { BigInteger.valueOf(it) } ,
-//                    uuid = resultRow[Properties.uuid],
         node = row[Properties.node]?.let {
             ResourceReference(
                 id = it,
                 iri = row[linkedResources[Resources.iri]].iri()
             )
         },
+//                    bigInt = resultRow[Properties.bigInt]?.let { BigInteger.valueOf(it) } ,
+//                    uuid = resultRow[Properties.uuid],
         iri = row[Properties.iri]?.let {
             if (it.contains("://")) {
                 it.iri()

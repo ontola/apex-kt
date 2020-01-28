@@ -32,15 +32,15 @@ class Property(
     val predicate: IRI,
     val order: Int = 0,
 
-    val boolean: Boolean?,
-    val string: String?,
-    val text: String?,
-    val dateTime: DateTime?,
-    val integer: Long?,
+    val boolean: Boolean? = null,
+    val string: String? = null,
+    val text: String? = null,
+    val dateTime: DateTime? = null,
+    val integer: Long? = null,
 //    val bigInt: BigInteger?,
 //    val uuid: UUID?,
-    val node: ResourceReference?,
-    val iri: IRI?
+    val node: ResourceReference? = null,
+    val iri: IRI? = null
 ) {
     fun value(): Any {
         val value = iri ?: string ?: node ?: dateTime ?: integer

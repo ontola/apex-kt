@@ -24,11 +24,11 @@ class DocumentService {
         }
     }
 
-    suspend fun addResource(resource: Document): Document {
+    suspend fun addResource(resource: NewDocument): Document {
         var key: Int? = null
         dbQuery {
             key = Documents.insert {
-                it[iri] = resource.iri
+                it[iri] = resource.iri.stringValue()
             } get Documents.id
         }
         return getDocument(key!!)!!.also {
@@ -62,14 +62,14 @@ class DocumentService {
             .let { parseResultSet(it)[id] }
     }
 
-    suspend fun updateDocument(resource: Document): Document? {
+    suspend fun updateDocument(resource: NewDocument): Document? {
         val id = resource.id
         return if (id === null) {
             addResource(resource)
         } else {
             dbQuery {
                 Documents.update({ Documents.id eq id }) {
-                    it[iri] = resource.iri
+                    it[iri] = resource.iri.stringValue()
                 }
             }
             getDocument(id).also {

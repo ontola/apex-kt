@@ -20,7 +20,7 @@ object Resources : Table("resources") {
 @IRIProvider("iri")
 class Resource(
     val id: Int,
-    var iri: String,
+    var iri: IRI,
 //    @SerialName("https://schema.org/dateCreated")
 //    var createdAt: DateTime,
 //    @SerialName("https://schema.org/dateUpdated")
@@ -43,7 +43,6 @@ data class ResourceReference(
 )
 
 data class NewResource(
-    val id: Int?,
-    val iri: IRI
-//    val confirmed: Boolean = false
+    val iri: IRI,
+    val properties: MutableCollection<Property>? = mutableListOf<Property>()
 )
