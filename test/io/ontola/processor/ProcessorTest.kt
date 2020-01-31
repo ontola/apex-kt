@@ -57,10 +57,9 @@ class ProcessorTest : StringSpec({
             val document = modelToDocument(pair)
         }
 
-//        // TODO
-//        document.iri shouldBe iri
+//      document.iri shouldBe "https://id.openraadsinformatie.nl/10"
 //
-//        val docResource = document.resources.find { r -> r.iri === iri.stringValue() }
+//      val docResource = document.resources.find { r -> r.iri === iri.stringValue() }
 
         // docResource.shouldBeInstanceOf<Resource>()
         // test properties

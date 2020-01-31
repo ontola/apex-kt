@@ -1,7 +1,11 @@
 package io.ontola.apex.model
 
 import com.soywiz.klock.DateTime
+import io.ontola.rdf.createIRI
 import org.eclipse.rdf4j.model.IRI
+import org.eclipse.rdf4j.model.impl.SimpleBNode
+import org.eclipse.rdf4j.model.impl.SimpleIRI
+import org.eclipse.rdf4j.model.impl.SimpleLiteral
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import java.util.*
@@ -32,15 +36,15 @@ class Property(
     val predicate: IRI,
     val order: Int = 0,
 
-    val boolean: Boolean? = null,
-    val string: String? = null,
-    val text: String? = null,
-    val dateTime: DateTime? = null,
-    val integer: Long? = null,
+    var boolean: Boolean? = null,
+    var string: String? = null,
+    var text: String? = null,
+    var dateTime: DateTime? = null,
+    var integer: Long? = null,
 //    val bigInt: BigInteger?,
 //    val uuid: UUID?,
-    val node: ResourceReference? = null,
-    val iri: IRI? = null
+    var node: ResourceReference? = null,
+    var iri: IRI? = null
 ) {
     fun value(): Any {
         val value = iri ?: string ?: node ?: dateTime ?: integer
@@ -51,5 +55,13 @@ class Property(
 //        }
 
         return value ?: "type not implemented ($id)"
+    }
+    fun setValue(value: Any) {
+        when (value) {
+            is SimpleIRI -> this.iri = createIRI(value.stringValue())
+//          is SimpleBNode -> this.iri = createIRI(value.stringValue())
+            is SimpleLiteral -> this.string = value.label
+            else -> throw Error("Unsupported property type ${value}")
+        }
     }
 }
