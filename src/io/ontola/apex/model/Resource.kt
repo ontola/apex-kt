@@ -5,6 +5,7 @@ import io.ontola.rdf.serialization.IRIProvider
 import io.ontola.rdf.serialization.PropertyProvider
 import kotlinx.serialization.SerialName
 import org.eclipse.rdf4j.model.IRI
+import org.eclipse.rdf4j.model.Resource
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
@@ -20,7 +21,7 @@ object Resources : Table("resources") {
 @IRIProvider("iri")
 class Resource(
     val id: Int,
-    var iri: IRI,
+    var iri: Resource,
 //    @SerialName("https://schema.org/dateCreated")
 //    var createdAt: DateTime,
 //    @SerialName("https://schema.org/dateUpdated")

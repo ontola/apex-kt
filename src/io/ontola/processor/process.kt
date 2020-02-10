@@ -41,7 +41,6 @@ internal fun modelToDocument(delta: Pair<IRI, Model>): NewDocument {
         val new_resource = NewResource(createIRI(group.key.toString()))
         for (property in group.value) {
             val new_property = Property(
-                id = UUID.randomUUID(),
                 predicate = property.predicate)
             new_property.setValue(property.`object`)
             new_resource.properties!!.add(new_property)

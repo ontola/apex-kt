@@ -30,7 +30,7 @@ object Properties : Table("properties") {
 }
 
 class Property(
-    val id: UUID,
+    val id: UUID? = null,
 //    val createdAt: DateTime,
 //    val updatedAt: DateTime,
     val predicate: IRI,
