@@ -17,6 +17,8 @@
 
 package io.ontola.deltabus
 
+import io.ontola.apex.service.DatabaseFactory
+import io.ontola.apex.service.DocumentService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.system.exitProcess
@@ -35,13 +37,15 @@ suspend fun processDeltas(producer: Flow<DeltaMessage>) = withContext(Dispatcher
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-fun pipeline(flow: Flow<DeltaMessage>): Flow<*> {
+fun pipeline(flow: Flow<DeltaMessage>, testing: Boolean = false): Flow<*> {
+    val svc = DocumentService()
+    DatabaseFactory.init(testing)
+
     return flow
         .filter { isDelta(it) }
         .map { parseMessage(it) }
         .map { splitDelta(it) }
         .flattenConcat()
-        .map { /* TODO: upsert */ println(it) }
-        /* TODO: Process each document */
-        .catch { e -> println("Caught $e") }
+        .map { writeDelta(svc, it.first, it.second) }
+        .catch { e -> println("[pipeline] Caught $e") }
 }

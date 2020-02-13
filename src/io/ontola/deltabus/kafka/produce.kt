@@ -17,7 +17,7 @@ fun produce(fromBeginning: Boolean): Flow<DeltaMessage> = flow {
     }
 
     while (true) {
-        val records = consumer.poll(Duration.ofMillis(10))
+        val records = consumer.poll(Duration.ofMillis(500))
         for (record in records) {
             emit(DeltaMessage(record.topic(), record.key(), record.value()))
         }

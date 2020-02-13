@@ -1,12 +1,10 @@
 package io.ontola.apex.service;
 
-import com.soywiz.klock.DateTime
 import io.ontola.apex.model.*
 import io.ontola.rdf.dsl.iri
 import org.jetbrains.exposed.sql.Query;
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.alias
-import java.time.ZoneOffset
 
 private val linkedResources = Resources.alias("lr")
 
@@ -63,33 +61,14 @@ private fun ensureProperty(row: ResultRow, resource: Resource): Property {
         id = row[Properties.id],
         predicate = row[Properties.predicate].iri(),
         order = row[Properties.order] ?: 0,
-
-        boolean = row[Properties.boolean],
-        string = row[Properties.string],
-        text = row[Properties.text],
-        dateTime = row[Properties.dateTime]?.let {
-            val unixMillis = it
-                .atZone(ZoneOffset.UTC)
-                .toInstant()
-                .toEpochMilli()
-            DateTime.fromUnix(unixMillis)
-        },
-        integer = row[Properties.integer],
-//                    bigInt = resultRow[Properties.bigInt]?.let { BigInteger.valueOf(it) } ,
-//                    uuid = resultRow[Properties.uuid],
+        value = row[Properties.value],
+        datatype = row[Properties.datatype],
+        language = row[Properties.language],
         node = row[Properties.node]?.let {
             ResourceReference(
                 id = it,
                 iri = row[linkedResources[Resources.iri]].iri()
             )
-        },
-        iri = row[Properties.iri]?.let {
-            if (it.contains("://")) {
-                it.iri()
-            } else {
-                // TODO: bugsnag
-                null
-            }
         }
     ).also { resource.properties += it }
 }

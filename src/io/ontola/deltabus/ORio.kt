@@ -140,10 +140,15 @@ class ORio(private val writer: RDFWriter) : RDFWriter by writer {
 
         fun parseToModel(string: String, baseDoc: String? = null): Model {
             var model: Model = LinkedHashModel()
-            StringReader(string).use {
-                model = parseToModel(it, baseDoc)
+            try {
+                StringReader(string).use {
+                    model = parseToModel(it, baseDoc)
+                }
+            } catch(e: RDFParseException) {
+                println("ParseException: $e}")
+            } finally {
+                return model
             }
-            return model
         }
 
         fun parseToModel(file: File, baseDoc: String? = null): Model {

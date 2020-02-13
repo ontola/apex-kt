@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
 object Documents : Table("documents") {
-    val id: Column<Int> = integer("id").autoIncrement()
+    val id: Column<Int> = integer("id").autoIncrement().uniqueIndex()
     val iri = varchar("iri", 2000)
 }
 

@@ -5,6 +5,10 @@ import io.ontola.apex.model.*
 import io.ontola.apex.model.Properties
 import org.jetbrains.exposed.sql.*
 import io.ontola.apex.service.DatabaseFactory.dbQuery
+import org.eclipse.rdf4j.model.BNode
+import org.eclipse.rdf4j.model.IRI
+import org.eclipse.rdf4j.model.Literal
+import org.eclipse.rdf4j.model.Model
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 
@@ -24,31 +28,30 @@ class DocumentService {
         }
     }
 
-    suspend fun addResource(resource: NewResource, ctx: Attributes): Document {
+    suspend fun addResource(resource: NewResource): Document {
         var key: Int? = null
         dbQuery {
             key = Resources.insert {
                 it[iri] = resource.iri.stringValue()
             } get Resources.id
         }
-        return getDocument(key!!, ctx)!!.also {
+        return getDocument(key!!)!!.also {
             onChange(ChangeType.CREATE, key!!, it)
         }
     }
 
     suspend fun getAllDocuments(ctx: Attributes, page: Int?): List<Document> = dbQuery {
-        val linkedResources = Resources.alias("lr")
+        val documents = Documents
+            .selectAll()
+            .orderBy(Documents.id to SortOrder.ASC)
+            .limit(100, offset = (((page ?: 1) - 1) * 100).coerceIn(1, Int.MAX_VALUE))
 
-        joinedPropertyTable(
-            (Documents.id eq Resources.document)
-                .and(Resources.id eq Properties.resource)
-                .and((Properties.node eq linkedResources[Resources.id]).or(Properties.node.isNull()))
-        )
-            .limit(1000, offset = (((page ?: 1) - 1) * 1000).coerceIn(1, Int.MAX_VALUE))
-            .let { parseResultSet(it).values.toList() }
+        documents.mapNotNull { document -> getDocument(document[Documents.id]) }
     }
 
-    suspend fun getDocument(id: Int, ctx: Attributes): Document? = dbQuery {
+    suspend fun getDocument(iri: IRI): Document? = this.getDocument(idFromOriIRI(iri))
+
+    suspend fun getDocument(id: Int): Document? = dbQuery {
         val linkedResources = Resources.alias("lr")
 
         joinedPropertyTable(
@@ -62,20 +65,76 @@ class DocumentService {
             .let { parseResultSet(it)[id] }
     }
 
-    suspend fun updateDocument(resource: NewResource, ctx: Attributes): Document? {
+    suspend fun updateDocument(resource: NewResource): Document? {
         val id = resource.id
         return if (id === null) {
-            addResource(resource, ctx)
+            addResource(resource)
         } else {
             dbQuery {
                 Resources.update({ Resources.id eq id }) {
                     it[iri] = resource.iri.stringValue()
                 }
             }
-            getDocument(id, ctx).also {
+            getDocument(id).also {
                 onChange(ChangeType.UPDATE, id, it)
             }
         }
+    }
+
+    suspend fun updateDocument(iri: IRI, data: Model) = dbQuery {
+        val id = this.idFromOriIRI(iri)
+        val existing = getDocument(id)
+        if (existing === null) {
+            println("Create resource")
+            val docId = Documents.insert {
+                it[this.id] = id
+                it[this.iri] = iri.stringValue()
+            } get Documents.id
+
+            val resourceIRIs = data.map { s -> s.subject.stringValue() }.distinct()
+
+            val resourceIds = Resources.batchInsert(resourceIRIs) { resource ->
+                this[Resources.iri] = resource
+                this[Resources.document] = docId
+            }.associate { row -> row[Resources.iri] to row[Resources.id] }
+
+            Properties.batchInsert(data) { prop ->
+                this[Properties.resource] = resourceIds[prop.subject.stringValue()]!!
+                this[Properties.predicate] = prop.predicate.stringValue()
+                val obj = prop.`object`
+                this[Properties.value] = obj.stringValue()
+                when (obj) {
+                    is IRI -> {
+                        this[Properties.datatype] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#namedNode"
+                        this[Properties.language] = ""
+                    }
+                    is BNode -> {
+                        this[Properties.datatype] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#blankNode"
+                        this[Properties.language] = ""
+                    }
+                    is Literal -> {
+                        this[Properties.datatype] = obj.datatype.stringValue()
+                        this[Properties.language] = obj.language.orElse("")
+                    }
+                    else -> {
+                        throw Error("Unexpected object type ($obj)")
+                    }
+                }
+            }
+            println("document insert complete")
+        } else {
+            println("Update resource")
+            Resources.update({ Resources.id eq id }) {
+//              it[iri] = resource.iri.stringValue()
+            }
+            getDocument(id).also {
+                onChange(ChangeType.UPDATE, id, it)
+            }
+        }
+    }
+
+    private fun idFromOriIRI(iri: IRI): Int {
+        return iri.stringValue().split("/").last().toInt()
     }
 
     private fun joinedPropertyTable(op: Op<Boolean>): Query {
@@ -99,9 +158,17 @@ class DocumentService {
             )
             .groupBy(
                 Documents.id,
+                Documents.iri,
                 Resources.id,
+                Resources.iri,
+                Resources.document,
                 Properties.id,
-                linkedResources[Resources.id]
+//                Properties.resource,
+//                Properties.predicate,
+                *Properties.columns.toTypedArray(),
+                linkedResources[Resources.id],
+                linkedResources[Resources.document],
+                linkedResources[Resources.iri]
             )
     }
 }

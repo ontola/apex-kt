@@ -1,55 +1,40 @@
 package io.ontola.apex.model
 
-import com.soywiz.klock.DateTime
 import org.eclipse.rdf4j.model.IRI
+import org.eclipse.rdf4j.model.Value
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.`java-time`.datetime
 import java.util.*
 
 object Properties : Table("properties") {
-    val id = uuid("id").autoGenerate()
-//    val createdAt = double("created_at")
-//    val updatedAt = double("updated_at")
+    val id = uuid("id").autoGenerate().uniqueIndex()
+    override val primaryKey = PrimaryKey(id, name = "PKConstraintName")
     val resource = integer("resource_id").references(Resources.id).index()
     val predicate = varchar("predicate", 2000)
     val order = integer("order").default(0).nullable()
 
-    val boolean = bool("prop_boolean").nullable()
-    val string = varchar("prop_string", 2000).nullable()
-    val text = varchar("prop_text", 1_000_000).nullable()
-    val dateTime = datetime("prop_datetime").nullable()
-    val integer = long("prop_integer").nullable()
-//    val bigInt = long("prop_bigint").nullable()
-//    val uuid = uuid("prop_uuid").nullable()
+    val value = varchar("value", 1_000_000)
+    val datatype = varchar("datatype", 2000)
+    val language = varchar("language", 255)
     val node = integer("prop_resource").references(Resources.id).nullable()
-    val iri = varchar("prop_iri", 2000).nullable()
 }
 
 class Property(
     val id: UUID,
-//    val createdAt: DateTime,
-//    val updatedAt: DateTime,
     val predicate: IRI,
     val order: Int = 0,
-
-    val boolean: Boolean?,
-    val string: String?,
-    val text: String?,
-    val dateTime: DateTime?,
-    val integer: Long?,
-//    val bigInt: BigInteger?,
-//    val uuid: UUID?,
-    val node: ResourceReference?,
-    val iri: IRI?
+    val value: String,
+    val datatype: String,
+    val language: String,
+    val node: ResourceReference?
 ) {
-    fun value(): Any {
-        val value = iri ?: string ?: node ?: dateTime ?: integer
-//        val value = boolean ?: string ?: text ?: dateTime ?: uuid ?: node
-
-//        if (value === null) {
-//            throw Error("Property has no value") // TODO: type exception
-//        }
-
-        return value ?: "type not implemented ($id)"
+    fun rdfValue(): Value {
+        val factory = SimpleValueFactory.getInstance()
+        return when (datatype) {
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#namedNode" -> factory.createIRI(this.value)
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#blankNode" -> factory.createBNode(this.value)
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString" -> factory.createLiteral(this.value, this.language)
+            else -> factory.createLiteral(this.value, factory.createIRI(this.datatype))
+        }
     }
 }

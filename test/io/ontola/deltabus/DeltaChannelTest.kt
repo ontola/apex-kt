@@ -18,16 +18,12 @@
 package io.ontola.deltabus
 
 import io.kotlintest.matchers.string.shouldBeEqualIgnoringCase
-import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.ontola.testhelpers.asResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
-import org.apache.kafka.clients.consumer.ConsumerRecord
 
 @FlowPreview
 @ExperimentalCoroutinesApi

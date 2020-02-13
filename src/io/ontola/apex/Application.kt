@@ -11,6 +11,8 @@ import io.ktor.features.origin
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
+import io.ktor.http.content.resource
+import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.request.port
 import io.ktor.response.respond
@@ -81,12 +83,16 @@ fun Application.module(testing: Boolean = false) {
                 RequestVariables.origin,
                 "${origin.scheme}://${origin.host}${call.request.port().let { ":$it" }}"
             )
-            val resource = documentService.getDocument(id!!.toInt(10), call.attributes)
+            val resource = documentService.getDocument(id!!.toInt(10))
             if (resource == null) {
                 call.respond(HttpStatusCode.NotFound, "404 not found")
             } else {
                 call.respond(resource)
             }
+        }
+
+        static("") {
+            resource("favicon.ico")
         }
     }
 }

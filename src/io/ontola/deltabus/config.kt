@@ -106,6 +106,9 @@ fun initKafkaConfig(config: Properties): Properties {
 
     kafkaOpts.setProperty("bootstrap.servers", config.getProperty("ori.api.kafka.address"))
     kafkaOpts.setProperty("group.id", config.getProperty("ori.api.kafka.group_id"))
+    kafkaOpts.setProperty("allow.auto.create.topics", "false")
+    kafkaOpts.setProperty("fetch.max.bytes", "1428800")
+    kafkaOpts.setProperty("fetch.max.wait.ms", "1000")
     kafkaOpts.setProperty("max.poll.records", "1")
     kafkaOpts.setProperty("session.timeout.ms", "60000")
     kafkaOpts.setProperty("enable.auto.commit", "true")
@@ -114,7 +117,7 @@ fun initKafkaConfig(config: Properties): Properties {
     kafkaOpts.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     kafkaOpts.setProperty("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     kafkaOpts.setProperty("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    kafkaOpts.setProperty("request.timeout.ms", "20000")
+    kafkaOpts.setProperty("request.timeout.ms", "60000")
     kafkaOpts.setProperty("retry.backoff.ms", "500")
 
     val clusterApiKey = config.getProperty("ori.api.kafka.clusterApiKey")

@@ -40,5 +40,5 @@ fun parseMessage(record: DeltaMessage): Model =
  * meaning it contains data synchronization updates.
  */
 fun isDelta(event: DeltaMessage): Boolean {
-    return event.topic === deltaTopic
+    return event.topic == deltaTopic
 }

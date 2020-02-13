@@ -1,5 +1,6 @@
 package io.ontola.apex.model
 
+import io.ontola.apex.model.Properties.index
 import io.ontola.rdf.dsl.iri
 import io.ontola.rdf.serialization.IRIProvider
 import io.ontola.rdf.serialization.PropertyProvider
@@ -9,8 +10,8 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
 object Resources : Table("resources") {
-    val id: Column<Int> = integer("id").autoIncrement()
-    val document: Column<Int> = integer("document_id").references(Documents.id)
+    val id: Column<Int> = integer("id").autoIncrement().uniqueIndex()
+    val document: Column<Int> = integer("document_id").references(Documents.id).index()
     val iri = varchar("iri", 2000)
 //    val createdAt = double("created_at")
 //    val updatedAt = double("updated_at")

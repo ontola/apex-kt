@@ -12,24 +12,20 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-
 object DatabaseFactory {
     fun init(testing: Boolean) {
         if (testing){
             Database.connect(testingConfig())
         } else {
             Database.connect(pgConfig())
-//            Database.connect(
-//                "jdbc:postgresql://localhost:5432/ori",
-//                driver = "org.postgresql.Driver",
-//                user = "ori_postgres_user",
-//                password = ""
-//            )
+        }
+
+        transaction {
+            SchemaUtils.create(Documents, Resources, Properties)
         }
 
         if (testing) {
             transaction {
-                SchemaUtils.create(Documents, Resources, Properties)
 
                 val bobDoc = Documents.insert {
 //                    it[id] = 5 // UUID.fromString("6bd19870-141b-42ea-8540-d9023715ef9f")
@@ -44,12 +40,12 @@ object DatabaseFactory {
                 Properties.insert {
                     it[resource] = bob
                     it[predicate] = "https://schema.org/name"
-                    it[string] = "Bob's document"
+                    it[value] = "Bob's document"
                 }
                 Properties.insert {
                     it[resource] = bob
                     it[predicate] = "https://schema.org/description"
-                    it[string] = "An electronic document about bob"
+                    it[value] = "An electronic document about bob"
                 }
 
                 val bobCard = Resources.insert {
@@ -60,12 +56,12 @@ object DatabaseFactory {
                 Properties.insert {
                     it[resource] = bobCard
                     it[predicate] = "https://schema.org/name"
-                    it[string] = "Bob"
+                    it[value] = "Bob"
                 }
                 Properties.insert {
                     it[resource] = bobCard
                     it[predicate] = "https://schema.org/description"
-                    it[string] = "A typical computer person"
+                    it[value] = "A typical computer person"
                 }
 
                 val bobMeta = Resources.insert {
@@ -76,12 +72,12 @@ object DatabaseFactory {
                 Properties.insert {
                     it[resource] = bobMeta
                     it[predicate] = "https://schema.org/name"
-                    it[string] = "About Bob"
+                    it[value] = "About Bob"
                 }
                 Properties.insert {
                     it[resource] = bobMeta
                     it[predicate] = "https://schema.org/description"
-                    it[string] = "Whatever metadata we have"
+                    it[value] = "Whatever metadata we have"
                 }
 
                 val aliceDoc = Documents.insert {

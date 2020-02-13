@@ -59,15 +59,14 @@ class EventBus {
             val consumer = KafkaConsumer<String, String>(ctx.kafkaOpts)
             consumer.subscribe(listOf(topic))
 
-            val partitionList = consumer
-                .partitionsFor(topic)
-                .stream()
-                .map { t: PartitionInfo -> Integer.toString(t.partition()) }
-                .collect(Collectors.joining(","))
+            val partitions = consumer.partitionsFor(topic)
+            val partitionList = partitions
+                .map { t: PartitionInfo -> t.partition().toString() }
+                .joinToString(",")
 
             if (waitForConnection) {
                 while (consumer.assignment().size == 0) {
-                    consumer.poll(Duration.ofMillis(100))
+                    consumer.poll(Duration.ofMillis(500))
                 }
             }
 
