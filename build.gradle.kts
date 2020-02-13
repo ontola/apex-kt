@@ -24,6 +24,7 @@ application {
 repositories {
     mavenLocal()
     jcenter()
+    mavenCentral()
     maven { url = uri("https://kotlin.bintray.com/ktor") }
 }
 
@@ -54,10 +55,10 @@ dependencies {
     // Fixes undefined HexBinaryAdapter in org.eclipse.rdf4j.rio.helpers::AbstractRDFParser
     implementation("javax.xml.bind:jaxb-api:2.3.0")
 
-    implementation("org.apache.kafka:kafka-clients:2.2.0")
-    testImplementation("org.apache.kafka:kafka-clients:2.2.0.kafka:test")
-    testImplementation("org.apache.kafka:kafka_2.11:2.2.0")
-    testImplementation("org.apache.kafka:kafka_2.11:2.2.0.kafka:test")
+    implementation("org.apache.kafka:kafka-clients:2.4.0")
+    testImplementation("org.apache.kafka:kafka-clients:2.4.0.kafka:test")
+    testImplementation("org.apache.kafka:kafka_2.11:2.4.0")
+    testImplementation("org.apache.kafka:kafka_2.11:2.4.0.kafka:test")
 
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
 }
